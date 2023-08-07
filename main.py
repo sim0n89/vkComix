@@ -52,9 +52,9 @@ def send_photo(upload_fields, image_path, group_id, access_token):
         files = {
             "file": file,  # Вместо ключа "media" скорее всего нужно подставить другое название ключа. Какое конкретно см. в доке API ВК.
         }
-        response = requests.post(url, files=files)
-        response.raise_for_status()
-        uploaded_file = response.json()
+    response = requests.post(url, files=files)
+    response.raise_for_status()
+    uploaded_file = response.json()
     if uploaded_file["photo"] != "":
         uploaded_file["group_id"] = group_id
         uploaded_file["access_token"] = access_token
@@ -65,8 +65,6 @@ def send_photo(upload_fields, image_path, group_id, access_token):
         response_image.raise_for_status()
         saved_image = response_image.json()
         return saved_image["response"]
-
-
 
 
 def main():
@@ -118,28 +116,26 @@ def main():
 
     owner_id = saved_image[0]["owner_id"]
     media_id = saved_image[0]["id"]
-    print (media_id)
     try:
         post = publish_post(media_id, owner_id, comix_text, group_id, access_token)
     except requests.HTTPError as e:
         print(e)
         return
-    
-    pprint(post)
 
+    pprint(post)
 
 
 def publish_post(media_id, owner_id, text, group_id, access_token):
     group_id = f"-{group_id}"
     attachments = f"photo{owner_id}_{media_id}"
     params = {
-        "attachments": attachments, 
-        "message": text, 
+        "attachments": attachments,
+        "message": text,
         "owner_id": group_id,
-        "access_token":access_token,
-        "from_group":1,
-        "v":5.131
-        }
+        "access_token": access_token,
+        "from_group": 1,
+        "v": 5.131,
+    }
     response = requests.post("https://api.vk.com/method/wall.post", params=params)
     response.raise_for_status()
     return response.json()
