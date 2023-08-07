@@ -9,14 +9,7 @@ from dotenv import load_dotenv
 
 from image_helpers import get_image_extension, save_image
 
-def save_comix(comix, comix_id):
-    path = Path("files")
-    path.mkdir(exist_ok=True)
-    name = f"{comix_id}.json"
-    file_path = path / name
-    with open(file_path, "w") as file:
-        json.dump(comix, file)
-    return file_path
+
 
 
 def download_random_comix():
@@ -36,11 +29,9 @@ def download_random_comix():
     extension = get_image_extension(image_url)
     image_name = f"{comix_id}{extension}"
     image_path = save_image(image_url, image_name)
-    comix_path = save_comix(comix, comix_id)
     saved_comix = {
         "image_path": image_path,
-        "text": comix_text, 
-        "comix_path": comix_path
+        "text": comix_text
     }
     return saved_comix
 
@@ -101,7 +92,6 @@ def main():
         comix = download_random_comix()
     except requests.HTTPError as e:
         print(e)
-    comix_path = comix["comix_path"]
     image_path = comix["image_path"]
     try:
         server_address = get_upload_fields(access_token, group_id)
@@ -116,7 +106,6 @@ def main():
         return
     finally:
         Path.unlink(image_path)
-        Path.unlink(comix_path)
 
     owner_id = saved_image[0]["owner_id"]
     media_id = saved_image[0]["id"]
