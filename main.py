@@ -20,9 +20,10 @@ def save_comix(comix, comix_id):
 
 
 def download_random_comix():
-    current_comix = download_comix("https://xkcd.com/info.0.json")
-    last_comix = current_comix["num"]
-    comix_id = randrange(1, last_comix)
+    response_num_comix = requests.get("https://xkcd.com/info.0.json")
+    response_num_comix = response_num_comix.json()
+    count_comixes = response_num_comix["num"]
+    comix_id = randrange(1, count_comixes)
 
     url = f"https://xkcd.com/{comix_id}/info.0.json"
     response = requests.get(url)
