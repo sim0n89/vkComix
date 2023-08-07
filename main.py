@@ -67,7 +67,7 @@ def send_photo(upload_fields, image_path, group_id, access_token):
         return saved_image["response"]
 
 
-def public_post(saved_image, text, group_id, access_token):
+def publish_post(saved_image, text, group_id, access_token):
     media_id = saved_image[0]["id"]
     image_owner_id = saved_image[0]["owner_id"]
     owner_id = f"-{group_id}"
@@ -127,14 +127,15 @@ def main():
     except requests.HTTPError as e:
         print(e)
         return
+    finally:
+        Path.unlink(image_path)
+        Path.unlink(comix_path)
 
     try:
-        post = public_post(saved_image, comix_text, group_id, access_token)
+        post = publish_post(saved_image, comix_text, group_id, access_token)
     except requests.HTTPError as e:
         print(e)
         return
-    Path.unlink(image_path)
-    Path.unlink(comix_path)
 
 
 if __name__ == "__main__":
