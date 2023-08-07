@@ -9,14 +9,6 @@ from dotenv import load_dotenv
 
 from image_helpers import get_image_extension, save_image
 
-
-def download_comix(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    comix = response.json()
-    return comix
-
-
 def save_comix(comix, comix_id):
     path = Path("files")
     path.mkdir(exist_ok=True)
@@ -31,9 +23,25 @@ def download_random_comix():
     current_comix = download_comix("https://xkcd.com/info.0.json")
     last_comix = current_comix["num"]
     comix_id = randrange(1, last_comix)
+
     url = f"https://xkcd.com/{comix_id}/info.0.json"
-    comix = download_comix(url)
-    return comix
+    response = requests.get(url)
+    response.raise_for_status()
+    comix = response.json()
+    
+    comix_id = comix["num"]
+    comix_text = comix["alt"]
+    image_url = comix["img"]
+    extension = get_image_extension(image_url)
+    image_name = f"{comix_id}{extension}"
+    image_path = save_image(image_url, image_name)
+    comix_path = save_comix(comix, comix_id)
+    saved_comix = {
+        "image_path": image_path,
+        "text": comix_text, 
+        "comix_path": comix_path
+    }
+    return saved_comix
 
 
 def get_upload_fields(access_token, group_id):
@@ -92,13 +100,8 @@ def main():
         comix = download_random_comix()
     except requests.HTTPError as e:
         print(e)
-    comix_id = comix["num"]
-    comix_text = comix["alt"]
-    image_url = comix["img"]
-    extension = get_image_extension(image_url)
-    image_name = f"{comix_id}{extension}"
-    image_path = save_image(image_url, image_name)
-    comix_path = save_comix(comix, comix_id)
+    comix_path = comix["comix_path"]
+    image_path = comix["image_path"]
     try:
         server_address = get_upload_fields(access_token, group_id)
     except requests.HTTPError as e:
