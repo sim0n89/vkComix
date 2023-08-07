@@ -67,21 +67,6 @@ def send_photo(upload_fields, image_path, group_id, access_token):
         return saved_image["response"]
 
 
-def publish_post(saved_image, text, group_id, access_token):
-    media_id = saved_image[0]["id"]
-    image_owner_id = saved_image[0]["owner_id"]
-    owner_id = f"-{group_id}"
-    attachments = f"photo{image_owner_id}_{media_id}"
-    params = {
-        "attachments": attachments, 
-        "message": text, 
-        "owner_id": owner_id,
-        "access_token":access_token,
-        "v":5.131
-        }
-    response = requests.post("https://api.vk.com/method/wall.post", params=params)
-    response.raise_for_status()
-    return response.json()
 
 
 def main():
@@ -131,11 +116,33 @@ def main():
         Path.unlink(image_path)
         Path.unlink(comix_path)
 
+    owner_id = saved_image[0]["owner_id"]
+    media_id = saved_image[0]["id"]
+    print (media_id)
     try:
-        post = publish_post(saved_image, comix_text, group_id, access_token)
+        post = publish_post(media_id, owner_id, comix_text, group_id, access_token)
     except requests.HTTPError as e:
         print(e)
         return
+    
+    pprint(post)
+
+
+
+def publish_post(media_id, owner_id, text, group_id, access_token):
+    group_id = f"-{group_id}"
+    attachments = f"photo{owner_id}_{media_id}"
+    params = {
+        "attachments": attachments, 
+        "message": text, 
+        "owner_id": group_id,
+        "access_token":access_token,
+        "from_group":1,
+        "v":5.131
+        }
+    response = requests.post("https://api.vk.com/method/wall.post", params=params)
+    response.raise_for_status()
+    return response.json()
 
 
 if __name__ == "__main__":
