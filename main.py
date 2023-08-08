@@ -111,7 +111,6 @@ def main():
     try:
         photo, server, upladed_hash = upload_photo(vk_token, vk_group_id, image_path)
     except requests.HTTPError as e:
-        Path.unlink(image_path)
         print(e)
         return
     finally:
