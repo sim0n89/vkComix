@@ -30,7 +30,7 @@ def download_random_comix():
     return saved_comix
 
 
-def get_upload_url(vk_token, group_id):
+def upload_photo(vk_token, group_id, image_path):
     params = {"group_id": group_id, "access_token": vk_token, "v": 5.131}
     response = requests.get(
         f"https://api.vk.com/method/photos.getWallUploadServer", params=params
@@ -38,18 +38,18 @@ def get_upload_url(vk_token, group_id):
     response.raise_for_status()
     response = response.json()
     upload_url = response["response"]["upload_url"]
-    return upload_url
-
-
-def upload_photo(upload_url, image_path, group_id, vk_token):
     with open(image_path, "rb") as file:
         url = upload_url
         files = {
-            "file": file, 
+            "file": file,
         }
-        response = requests.post(url, files=files)
+        response = requests.post(upload_url, files=files)
         response.raise_for_status()
         uploaded_file = response.json()
+    return uploaded_file
+
+
+def save_wall_photo(uploaded_file, group_id, vk_token):
     if uploaded_file["photo"] != "":
         uploaded_file["group_id"] = group_id
         uploaded_file["access_token"] = vk_token
@@ -92,7 +92,10 @@ def main():
     except KeyError as e:
         print("Вы не указали VK_GROUP_ID")
         return
-
+    
+    path = Path("images")
+    path.mkdir(exist_ok=True)
+    
     try:
         comix = download_random_comix()
     except requests.HTTPError as e:
@@ -100,20 +103,19 @@ def main():
     image_path = comix["image_path"]
 
     try:
-        upload_url = get_upload_url(vk_token, vk_group_id)
+        uploaded_file = upload_photo(vk_token, vk_group_id, image_path)
     except requests.HTTPError as e:
         Path.unlink(image_path)
-        print(e)
-        return
-
-    
-    try:
-        saved_image = upload_photo(upload_url, image_path, vk_group_id, vk_token)
-    except requests.HTTPError as e:
         print(e)
         return
     finally:
         Path.unlink(image_path)
+
+    try:
+        saved_image = save_wall_photo(uploaded_file, vk_group_id, vk_token)
+    except requests.HTTPError as e:
+        print(e)
+        return
 
     owner_id = saved_image[0]["owner_id"]
     media_id = saved_image[0]["id"]
