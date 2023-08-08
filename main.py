@@ -44,7 +44,7 @@ def send_photo(upload_url, image_path, group_id, vk_token):
     with open(image_path, "rb") as file:
         url = upload_url
         files = {
-            "file": file,  # Вместо ключа "media" скорее всего нужно подставить другое название ключа. Какое конкретно см. в доке API ВК.
+            "file": file, 
         }
         response = requests.post(url, files=files)
         response.raise_for_status()
@@ -97,6 +97,7 @@ def main():
     except requests.HTTPError as e:
         print(e)
     image_path = comix["image_path"]
+
     try:
         server_address = get_upload_fields(vk_token, vk_group_id)
     except requests.HTTPError as e:
