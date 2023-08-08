@@ -92,11 +92,6 @@ def main():
         print("Вы не указали GROUP_ID")
         return
 
-    try:
-        app_id = os.environ["APP_ID"]
-    except KeyError as e:
-        print("Вы не указали APP_ID")
-        return
 
     try:
         comix = download_random_comix()
