@@ -46,15 +46,15 @@ def get_upload_fields(access_token, group_id):
     return response["response"]
 
 
-def send_photo(upload_fields, image_path, group_id, access_token):
+def send_photo(upload_url, image_path, group_id, access_token):
     with open(image_path, "rb") as file:
-        url = upload_fields["upload_url"]
+        url = upload_url
         files = {
             "file": file,  # Вместо ключа "media" скорее всего нужно подставить другое название ключа. Какое конкретно см. в доке API ВК.
         }
-    response = requests.post(url, files=files)
-    response.raise_for_status()
-    uploaded_file = response.json()
+        response = requests.post(url, files=files)
+        response.raise_for_status()
+        uploaded_file = response.json()
     if uploaded_file["photo"] != "":
         uploaded_file["group_id"] = group_id
         uploaded_file["access_token"] = access_token
@@ -99,6 +99,7 @@ def main():
         print(e)
         return
 
+    server_address = server_address['upload_url']
     try:
         saved_image = send_photo(server_address, image_path, group_id, access_token)
     except requests.HTTPError as e:
@@ -110,7 +111,7 @@ def main():
     owner_id = saved_image[0]["owner_id"]
     media_id = saved_image[0]["id"]
     try:
-        post = publish_post(media_id, owner_id, comix_text, group_id, access_token)
+        post = publish_post(media_id, owner_id, comix['text'], group_id, access_token)
     except requests.HTTPError as e:
         print(e)
         return
