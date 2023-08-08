@@ -30,8 +30,8 @@ def download_random_comix():
     return saved_comix
 
 
-def get_upload_fields(access_token, group_id):
-    params = {"group_id": group_id, "access_token": access_token, "v": 5.131}
+def get_upload_fields(vk_token, group_id):
+    params = {"group_id": group_id, "access_token": vk_token, "v": 5.131}
     response = requests.get(
         f"https://api.vk.com/method/photos.getWallUploadServer", params=params
     )
@@ -40,7 +40,7 @@ def get_upload_fields(access_token, group_id):
     return response["response"]
 
 
-def send_photo(upload_url, image_path, group_id, access_token):
+def send_photo(upload_url, image_path, group_id, vk_token):
     with open(image_path, "rb") as file:
         url = upload_url
         files = {
@@ -51,7 +51,7 @@ def send_photo(upload_url, image_path, group_id, access_token):
         uploaded_file = response.json()
     if uploaded_file["photo"] != "":
         uploaded_file["group_id"] = group_id
-        uploaded_file["access_token"] = access_token
+        uploaded_file["access_token"] = vk_token
         uploaded_file["v"] = 5.131
         response_image = requests.post(
             "https://api.vk.com/method/photos.saveWallPhoto", params=uploaded_file
@@ -61,14 +61,14 @@ def send_photo(upload_url, image_path, group_id, access_token):
         return saved_image["response"]
 
 
-def publish_post(media_id, owner_id, text, group_id, access_token):
+def publish_post(media_id, owner_id, text, group_id, vk_token):
     group_id = f"-{group_id}"
     attachments = f"photo{owner_id}_{media_id}"
     params = {
         "attachments": attachments,
         "message": text,
         "owner_id": group_id,
-        "access_token": access_token,
+        "access_token": vk_token,
         "from_group": 1,
         "v": 5.131,
     }
@@ -81,15 +81,15 @@ def main():
     dotenv_path = join(dirname(__file__), ".env")
     load_dotenv(dotenv_path)
     try:
-        access_token = os.environ["ACCESS_TOKEN"]
+        vk_token = os.environ["VK_TOKEN"]
     except KeyError as e:
-        print("Вы не указали ACCESS_TOKEN")
+        print("Вы не указали VK_TOKEN")
         return
 
     try:
-        group_id = os.environ["GROUP_ID"]
+        vk_group_id = os.environ["VK_GROUP_ID"]
     except KeyError as e:
-        print("Вы не указали GROUP_ID")
+        print("Вы не указали VK_GROUP_ID")
         return
 
 
@@ -99,14 +99,14 @@ def main():
         print(e)
     image_path = comix["image_path"]
     try:
-        server_address = get_upload_fields(access_token, group_id)
+        server_address = get_upload_fields(vk_token, vk_group_id)
     except requests.HTTPError as e:
         print(e)
         return
 
     server_address = server_address["upload_url"]
     try:
-        saved_image = send_photo(server_address, image_path, group_id, access_token)
+        saved_image = send_photo(server_address, image_path, vk_group_id, vk_token)
     except requests.HTTPError as e:
         print(e)
         return
@@ -116,7 +116,7 @@ def main():
     owner_id = saved_image[0]["owner_id"]
     media_id = saved_image[0]["id"]
     try:
-        post = publish_post(media_id, owner_id, comix["text"], group_id, access_token)
+        post = publish_post(media_id, owner_id, comix["text"], vk_group_id, vk_token)
     except requests.HTTPError as e:
         print(e)
         return

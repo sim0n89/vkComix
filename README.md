@@ -11,8 +11,8 @@
 
 Для запуска необходимо заполнить следующие переменные окружения в файле `.env` рядом с main.py:   
 
-* `ACCESS_TOKEN` - ключ доступа приложения vk, с правами `scope=photos,groups,wall`, получить можно по этой [инструкции](https://vk.com/dev/implicit_flow_user) 
-* `GROUP_ID` - id группы vk, необходимо создать группу vk, получить ее id можно [тут](https://regvk.com/id/)
+* `VK_TOKEN` - ключ доступа приложения vk, с правами `scope=photos,groups,wall`, получить можно по этой [инструкции](https://vk.com/dev/implicit_flow_user) 
+* `VK_GROUP_ID` - id группы vk, необходимо создать группу vk, получить ее id можно [тут](https://regvk.com/id/)
 
 
 
