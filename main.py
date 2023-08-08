@@ -40,20 +40,20 @@ def upload_photo(vk_token, group_id, image_path):
             "file": file,
         }
         response = requests.post(upload_url, files=files)
-        response.raise_for_status()
-        uploaded_file = response.json()
-        photo = uploaded_file["photo"]
-        server = uploaded_file["server"]
-        hash = uploaded_file["hash"]
-    return photo, server, hash
+    response.raise_for_status()
+    uploaded_file = response.json()
+    photo = uploaded_file["photo"]
+    server = uploaded_file["server"]
+    upladed_hash = uploaded_file["hash"]
+    return photo, server, upladed_hash
 
 
-def save_wall_photo(photo, server, hash,  group_id, vk_token):
+def save_wall_photo(photo, server, upladed_hash,  group_id, vk_token):
     if photo !='':
         params = {
             "photo": photo,
             "server":server,
-            "hash": hash,
+            "hash": upladed_hash,
             "group_id": group_id,
             "access_token": vk_token,
             "v": 5.131
@@ -109,7 +109,7 @@ def main():
         print(e)
 
     try:
-        photo, server, hash = upload_photo(vk_token, vk_group_id, image_path)
+        photo, server, upladed_hash = upload_photo(vk_token, vk_group_id, image_path)
     except requests.HTTPError as e:
         Path.unlink(image_path)
         print(e)
@@ -118,7 +118,7 @@ def main():
         Path.unlink(image_path)
 
     try:
-        saved_image = save_wall_photo(photo, server, hash, vk_group_id, vk_token)
+        saved_image = save_wall_photo(photo, server, upladed_hash, vk_group_id, vk_token)
     except requests.HTTPError as e:
         print(e)
         return
