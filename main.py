@@ -1,4 +1,3 @@
-import json
 import os
 from os.path import dirname, join
 from pathlib import Path
@@ -8,8 +7,6 @@ import requests
 from dotenv import load_dotenv
 
 from image_helpers import get_image_extension, save_image
-
-
 
 
 def download_random_comix():
@@ -22,17 +19,14 @@ def download_random_comix():
     response = requests.get(url)
     response.raise_for_status()
     comix = response.json()
-    
+
     comix_id = comix["num"]
     comix_text = comix["alt"]
     image_url = comix["img"]
     extension = get_image_extension(image_url)
     image_name = f"{comix_id}{extension}"
     image_path = save_image(image_url, image_name)
-    saved_comix = {
-        "image_path": image_path,
-        "text": comix_text
-    }
+    saved_comix = {"image_path": image_path, "text": comix_text}
     return saved_comix
 
 
@@ -67,6 +61,22 @@ def send_photo(upload_url, image_path, group_id, access_token):
         return saved_image["response"]
 
 
+def publish_post(media_id, owner_id, text, group_id, access_token):
+    group_id = f"-{group_id}"
+    attachments = f"photo{owner_id}_{media_id}"
+    params = {
+        "attachments": attachments,
+        "message": text,
+        "owner_id": group_id,
+        "access_token": access_token,
+        "from_group": 1,
+        "v": 5.131,
+    }
+    response = requests.post("https://api.vk.com/method/wall.post", params=params)
+    response.raise_for_status()
+    return response.json()
+
+
 def main():
     dotenv_path = join(dirname(__file__), ".env")
     load_dotenv(dotenv_path)
@@ -99,7 +109,7 @@ def main():
         print(e)
         return
 
-    server_address = server_address['upload_url']
+    server_address = server_address["upload_url"]
     try:
         saved_image = send_photo(server_address, image_path, group_id, access_token)
     except requests.HTTPError as e:
@@ -111,28 +121,12 @@ def main():
     owner_id = saved_image[0]["owner_id"]
     media_id = saved_image[0]["id"]
     try:
-        post = publish_post(media_id, owner_id, comix['text'], group_id, access_token)
+        post = publish_post(media_id, owner_id, comix["text"], group_id, access_token)
     except requests.HTTPError as e:
         print(e)
         return
 
     pprint(post)
-
-
-def publish_post(media_id, owner_id, text, group_id, access_token):
-    group_id = f"-{group_id}"
-    attachments = f"photo{owner_id}_{media_id}"
-    params = {
-        "attachments": attachments,
-        "message": text,
-        "owner_id": group_id,
-        "access_token": access_token,
-        "from_group": 1,
-        "v": 5.131,
-    }
-    response = requests.post("https://api.vk.com/method/wall.post", params=params)
-    response.raise_for_status()
-    return response.json()
 
 
 if __name__ == "__main__":
