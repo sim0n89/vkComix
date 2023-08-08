@@ -30,17 +30,18 @@ def download_random_comix():
     return saved_comix
 
 
-def get_upload_fields(vk_token, group_id):
+def get_upload_url(vk_token, group_id):
     params = {"group_id": group_id, "access_token": vk_token, "v": 5.131}
     response = requests.get(
         f"https://api.vk.com/method/photos.getWallUploadServer", params=params
     )
     response.raise_for_status()
     response = response.json()
-    return response["response"]
+    upload_url = response["response"]["upload_url"]
+    return upload_url
 
 
-def send_photo(upload_url, image_path, group_id, vk_token):
+def upload_photo(upload_url, image_path, group_id, vk_token):
     with open(image_path, "rb") as file:
         url = upload_url
         files = {
@@ -99,15 +100,15 @@ def main():
     image_path = comix["image_path"]
 
     try:
-        server_address = get_upload_fields(vk_token, vk_group_id)
+        upload_url = get_upload_url(vk_token, vk_group_id)
     except requests.HTTPError as e:
         Path.unlink(image_path)
         print(e)
         return
 
-    server_address = server_address["upload_url"]
+    
     try:
-        saved_image = send_photo(server_address, image_path, vk_group_id, vk_token)
+        saved_image = upload_photo(upload_url, image_path, vk_group_id, vk_token)
     except requests.HTTPError as e:
         print(e)
         return
