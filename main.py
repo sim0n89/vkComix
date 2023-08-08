@@ -92,7 +92,6 @@ def main():
         print("Вы не указали VK_GROUP_ID")
         return
 
-
     try:
         comix = download_random_comix()
     except requests.HTTPError as e:
@@ -101,6 +100,7 @@ def main():
     try:
         server_address = get_upload_fields(vk_token, vk_group_id)
     except requests.HTTPError as e:
+        Path.unlink(image_path)
         print(e)
         return
 
