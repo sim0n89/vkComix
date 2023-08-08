@@ -4,6 +4,7 @@ from pathlib import Path
 from random import randrange
 import requests
 from dotenv import load_dotenv
+import pprint
 
 from image_helpers import get_image_extension, save_image
 
@@ -41,17 +42,25 @@ def upload_photo(vk_token, group_id, image_path):
         response = requests.post(upload_url, files=files)
         response.raise_for_status()
         uploaded_file = response.json()
-    return uploaded_file
+        photo = uploaded_file["photo"]
+        server = uploaded_file["server"]
+        hash = uploaded_file["hash"]
+    return photo, server, hash
 
 
-def save_wall_photo(uploaded_file, group_id, vk_token):
-    if uploaded_file["photo"] != "":
-        uploaded_file["group_id"] = group_id
-        uploaded_file["access_token"] = vk_token
-        uploaded_file["v"] = 5.131
+def save_wall_photo(photo, server, hash,  group_id, vk_token):
+    if photo !='':
+        params = {
+            "photo": photo,
+            "server":server,
+            "hash": hash,
+            "group_id": group_id,
+            "access_token": vk_token,
+            "v": 5.131
+        }
         response_image = requests.post(
             "https://api.vk.com/method/photos.saveWallPhoto", 
-            params=uploaded_file)
+            params=params)
         response_image.raise_for_status()
         saved_image = response_image.json()
         return saved_image["response"]
@@ -100,7 +109,7 @@ def main():
         print(e)
 
     try:
-        uploaded_file = upload_photo(vk_token, vk_group_id, image_path)
+        photo, server, hash = upload_photo(vk_token, vk_group_id, image_path)
     except requests.HTTPError as e:
         Path.unlink(image_path)
         print(e)
@@ -109,7 +118,7 @@ def main():
         Path.unlink(image_path)
 
     try:
-        saved_image = save_wall_photo(uploaded_file, vk_group_id, vk_token)
+        saved_image = save_wall_photo(photo, server, hash, vk_group_id, vk_token)
     except requests.HTTPError as e:
         print(e)
         return
