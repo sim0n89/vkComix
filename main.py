@@ -4,13 +4,13 @@ from pathlib import Path
 from random import randrange
 import requests
 from dotenv import load_dotenv
-import pprint
 
 from image_helpers import get_image_extension, save_image
 
 
 def download_random_comix():
     response_num_comix = requests.get("https://xkcd.com/info.0.json")
+    response_num_comix.raise_for_status()
     response_num_comix = response_num_comix.json()
     count_comixes = response_num_comix["num"]
     comix_id = randrange(1, count_comixes)
@@ -64,6 +64,7 @@ def save_wall_photo(photo, server, upladed_hash,  group_id, vk_token):
         response_image.raise_for_status()
         saved_image = response_image.json()
         return saved_image["response"]
+    raise ValueError('Фото не загрузилось')
 
 
 def publish_post(media_id, owner_id, text, group_id, vk_token):
@@ -102,34 +103,21 @@ def main():
 
     path = Path("images")
     path.mkdir(exist_ok=True)
-
     try:
         image_path, comix_text = download_random_comix()
-    except requests.HTTPError as e:
-        print(e)
-
-    try:
         photo, server, upladed_hash = upload_photo(vk_token, vk_group_id, image_path)
-    except requests.HTTPError as e:
-        print(e)
-        return
-    finally:
-        Path.unlink(image_path)
-
-    try:
         saved_image = save_wall_photo(photo, server, upladed_hash, vk_group_id, vk_token)
-    except requests.HTTPError as e:
-        print(e)
-        return
-
-    owner_id = saved_image[0]["owner_id"]
-    media_id = saved_image[0]["id"]
-
-    try:
+        owner_id = saved_image[0]["owner_id"]
+        media_id = saved_image[0]["id"]
         publish_post(media_id, owner_id, comix_text, vk_group_id, vk_token)
     except requests.HTTPError as e:
         print(e)
         return
+    except KeyError:
+        print("Проверьте VK_TOKEN")
+        return
+    finally:
+        Path.unlink(image_path)
 
 
 if __name__ == "__main__":
