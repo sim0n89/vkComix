@@ -112,7 +112,6 @@ def main():
         publish_post(media_id, owner_id, comix_text, vk_group_id, vk_token)
     except requests.HTTPError as e:
         print(e)
-        return
     finally:
         Path.unlink(image_path)
 
