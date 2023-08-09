@@ -113,9 +113,6 @@ def main():
     except requests.HTTPError as e:
         print(e)
         return
-    except KeyError:
-        print("Проверьте VK_TOKEN")
-        return
     finally:
         Path.unlink(image_path)
 
